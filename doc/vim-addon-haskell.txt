@@ -1,0 +1,38 @@
+
+As this plugin depends on other plugins it should be installed using
+vim-addon-manager -> http://github.com/MarcWeber/vim-addon-manager
+
+Features:
+=========================
+- .cabal file folding
+- .cabal file completion
+- create easy mappings to run cabal or ghc 
+  (See documentation of vim-addon-actions)
+
+  Note: you can add special comments like this to tell the Plugin to add ghc
+  options automatically. This is both: for your convinience and for documentation :-)
+
+  -- ghc-options: -O2 -package FooBar
+
+
+
+Recommended:
+================
+  -don't miss Scion!  http://github.com/nominolo/scion
+
+
+bug reports patches etc:
+=========================
+  You're welcome.
+  Contact me      : marco-oweber@gmx.de
+  irc.freenode.net: MarcWeber
+
+
+TODO
+=========================
+- use Vim help format for this file
+- (re)compile Setup automatically (I use hack-nix..)
+- Cabal Syntax file?
+- ...
+- setup mapping automatically if a .cabal file is present?
+  (my tovl library does this)
