@@ -115,4 +115,39 @@ fun! vim_addon_haskell#RunCabalBuild()
   return "call bg#RunQF(".string(args).", 'c', ".string(s:ef).")"
 endf
 
+
+" new stuff  {{{1
+fun! vim_addon_haskell#IndentStuffTheWayPastornWant(i_c) range
+  " get the lines we want to indent:
+  let range = range(a:firstline, a:lastline)
+  let lines = getline(a:firstline, a:lastline)
+  let i_c = a:i_c
+  " max index based on indentation
+  let max_indent = {}
+  for idx in range
+    let l = getline(idx)
+    let ind = indent(idx)
+    let lis = matchlist(l, '\([^<'.i_c.']\{-}\)\(['.i_c.'].*\)')
+    if len(lis) < 3 || lis[2] == "" | break | endif
+    let l = matchstr(lis[1],'^\zs.\{-}\ze\s*$') " part of the line before separator and remove trailing spaces
+    let r = lis[2] " part of line beginning with separator
+    " TODO: remove spaces before ->
+    let l = len(l)
+    if l > get(max_indent, ind, 0) | let max_indent[ind] = l | endif
+  endfor
+  " now do the indentation, missing spaces
+  let offset = 0
+  for idx in range
+    let l = getline(idx)
+    let ind = indent(idx)
+    let lis = matchlist(l, '\([^<'.i_c.']\{-}\)\(['.i_c.'].*\)')
+    if len(lis) < 3 || lis[2] == "" | break | endif
+    let l = matchstr(lis[1],'^\zs.\{-}\ze\s*$') " part of the line before separator and remove trailing spaces
+    let r = lis[2]
+    let diff = max_indent[ind] - len(l) + 1
+    call setline(a:firstline + offset, l . repeat(' ', diff). r )
+    let offset = offset + 1
+  endfor
+endfun
+
 " vim:fdm=marker
