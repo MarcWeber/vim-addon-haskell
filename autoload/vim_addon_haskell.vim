@@ -57,9 +57,16 @@ let s:cabalSettings =
   \, 'build-type : '
   \]
 
+
+fun! s:SplitCurrentLineAtCursor()
+  let pos = col('.') -1
+  let line = getline('.')
+  return [strpart(line,0,pos), strpart(line, pos, len(line)-pos)]
+endfunction
+
 fun! vim_addon_haskell#CompleteCabalSetting(findstart, base)
   if a:findstart
-    let [bc,ac] = tovl#buffer#SplitCurrentLineAtCursor()
+    let [bc,ac] = s:SplitCurrentLineAtCursor()
     return len(bc)-len(matchstr(bc,'\S*$'))
   else
     " find months matching with "a:base"
