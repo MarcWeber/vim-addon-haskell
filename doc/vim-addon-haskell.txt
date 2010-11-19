@@ -14,6 +14,15 @@ Features:
 
   -- ghc-options: -O2 -package FooBar
 
+- run ghc or or cabal build usisng vim-addon-actions (Refer to the
+  documentation of that plugin, please)
+
+  Eg try one of
+    :ActionOnBufWrite  (will run the action when you write a buffer)
+  or type
+    <s-f2> (will run the action when you press F2. This may work in gvim only)
+  type ghc or cabal
+
 
 
 Recommended:
