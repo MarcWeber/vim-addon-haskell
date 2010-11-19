@@ -23,6 +23,7 @@ Features:
     <s-f2> (will run the action when you press F2. This may work in gvim only)
   type ghc or cabal
 
+  You can use the "run ghc compilation result" action to run what you compiled by ghc
 
 
 Recommended:
