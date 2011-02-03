@@ -55,6 +55,7 @@ let s:cabalSettings =
   \, 'cpp-options: '
   \, 'bulidable: '
   \, 'build-type : '
+  \, 'default-language: Haskell2010'
   \]
 
 
