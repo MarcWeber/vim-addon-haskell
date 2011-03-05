@@ -5,3 +5,5 @@ call actions#AddAction('run cabal build', {'action': funcref#Function('vim_addon
 augroup HASKELL_CABAL
   autocmd BufRead,BufNewFile *.cabal  setlocal ft=cabal
 augroup end
+
+command HaskellAddTypeSigsFromQF call vim_addon_haskell#AddTypeSignaturesFromQF()

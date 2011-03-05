@@ -158,4 +158,40 @@ fun! vim_addon_haskell#IndentStuffTheWayPastornWant(i_c) range
   endfor
 endfun
 
+fun! vim_addon_haskell#AddTypeSignaturesFromQF()
+  let list = getqflist()
+  let l = 0
+  let sigs = []
+  while l < len(list)
+    " find item of qf list which has a filename
+    while l < len(list) && list[l].bufnr == 0 | let l += 1 | endwhile
+    if l == len(list) | break | endif
+    let file = list[l]
+    let l += 1
+    if l == len(list) | break | endif
+
+    if list[l].text =~ 'Warning: Definition but no type signature for'
+      let l += 1
+      let type = []
+      while list[l].bufnr == 0
+        call add(type, substitute(list[l].text,'^             Inferred type: \|^                            ','',''))
+        let l += 1
+      endwhile
+      call add(sigs, [file, type[:-2]])
+    else
+      let l += 1
+    endif
+  endwhile
+  let names = []
+  for l in range(len(sigs)-1,0,-1)
+    let sig = sigs[l]
+    " goto buf
+    exec 'b '.sig[0].bufnr
+    " add lines
+    call append(sig[0].lnum-1, sig[1])
+    call add(names, sig[1][0])
+  endfor
+  echo 'sigs added to :'
+  for l in names | echo l | endfor
+endf 
 " vim:fdm=marker
