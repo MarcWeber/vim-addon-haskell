@@ -4,6 +4,10 @@ call actions#AddAction('run cabal build', {'action': funcref#Function('vim_addon
 
 augroup HASKELL_CABAL
   autocmd BufRead,BufNewFile *.cabal  setlocal ft=cabal
+  " not perfect:
+  " should only be done if it is a Haskell file (TODO)
+  autocmd BufRead,BufNewFile *.x if search('^module\>','n') > 0 | setlocal ft=haskell | endif
+  autocmd BufRead,BufNewFile *.y if search('^module\>','n') > 0 | setlocal ft=haskell | endif
 augroup end
 
-command HaskellAddTypeSigsFromQF call vim_addon_haskell#AddTypeSignaturesFromQF()
+command! HaskellAddTypeSigsFromQF call vim_addon_haskell#AddTypeSignaturesFromQF()
