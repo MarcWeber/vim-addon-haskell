@@ -1,4 +1,9 @@
 " setup cabal / ghc compilation {{{1
+"
+" TODO: remove references to tovl#
+
+" vam#DefineAndBind('s:c','g:vim_addon_haskell','{}')
+if !exists('g:vim_addon_haskell') | let g:vim_addon_haskell = {} | endif | let s:c = g:vim_addon_haskell
 
 let s:ef =
         \ '%f:%l:%c:%m'
@@ -19,18 +24,31 @@ fun! vim_addon_haskell#RunGHCRHS()
   endif
 
   let args = ["ghc","--make"] + ghcOptions + [ expand('%') ]
-  let args = eval(input('command: ', string(args)))
+  let args = actions#ConfirmArgs(args, 'command: ')
   return "call bg#RunQF(".string(args).", 'c', ".string(s:ef).")"
 endf
 
 " Cabal {{{2
 fun! vim_addon_haskell#RunCabalBuild()
   " errorformat taken from http://www.vim.org/scripts/script.php?script_id=477
-
-  let args = ["./Setup","build"]
-  let args = eval(input('command: ', string(args)))
+  let args = ["./Setup","build","--builddir", vim_addon_haskell#DistDir() ]
+  let args = actions#ConfirmArgs(args, 'command :')
   return "call bg#RunQF(".string(args).", 'c', ".string(s:ef).")"
 endf
+
+fun! vim_addon_haskell#RunCabalBuildResult()
+  let files = []
+  for dist in vim_addon_haskell#DistDirs()
+    call extend(files, filter(split(glob(dist.'/build/*/*'),"\n"), 'executable(v:val)'))
+  endfor
+
+  let ex = tlib#input#List('s', 'select executable :', files)
+
+  let args = [ex]
+  let args = actions#ConfirmArgs(args, 'command:')
+  return "call bg#RunQF(".string(args).", 'c', ".string(s:ef).")"
+endf
+
 
 " simple cabal completion {{{1
 
@@ -93,12 +111,12 @@ fun! vim_addon_haskell#Folding(...)
 endf
 
 
+" errorformat taken from http://www.vim.org/scripts/script.php?script_id=477
 let s:ef =
         \ '%f:%l:%c:%m'
         \ .',%E%f:%l:%c:'
 
 fun! vim_addon_haskell#RunGHCRHS()
-  " errorformat taken from http://www.vim.org/scripts/script.php?script_id=477
 
   let options = filter( getline(1, line('$')), "v:val =~ '--\\s*ghc-options:'" )
   if len(options) == 1
@@ -111,18 +129,9 @@ fun! vim_addon_haskell#RunGHCRHS()
   endif
 
   let args = ["ghc","--make"] + ghcOptions + [ expand('%') ]
-  let args = eval(input('command: ', string(args)))
+  let args = actions#ConfirmArgs(args, 'command :')
   return "call bg#RunQF(".string(args).", 'c', ".string(s:ef).")"
 endf
-
-fun! vim_addon_haskell#RunCabalBuild()
-  " errorformat taken from http://www.vim.org/scripts/script.php?script_id=477
-
-  let args = ["./Setup","build"]
-  let args = eval(input('command: ', string(args)))
-  return "call bg#RunQF(".string(args).", 'c', ".string(s:ef).")"
-endf
-
 
 " new stuff  {{{1
 fun! vim_addon_haskell#IndentStuffTheWayPastornWant(i_c) range
@@ -194,4 +203,58 @@ fun! vim_addon_haskell#AddTypeSignaturesFromQF()
   echo 'sigs added to :'
   for l in names | echo l | endfor
 endf 
+
+" helper functions {{{1
+fun! vim_addon_haskell#DistDirs()
+  return map(split(glob("*/setup-config"),"\n"), '"./".fnamemodify(v:val, ":h")')
+endf
+
+fun! vim_addon_haskell#DistDir()
+  " Ask for dist directory
+  if !exists('s:c.cabalDistDir')
+    let s:c.cabalDistDir = tovl#ui#choice#LetUserSelectIfThereIsAChoice("Which cabal setup to use ?"
+          \ , vim_addon_haskell#DistDirs())
+  endif
+  return s:c.cabalDistDir
+endf
+
+fun! vim_addon_haskell#CabalFile()
+  if !exists('s:c.cabalFile')
+    let cabalFiles = split(glob('*.cabal'),"\n")
+    " should never happpen ..
+    let s:c.cabalFile = tovl#ui#choice#LetUserSelectIfThereIsAChoice("Which cabal file to use?", cabalFiles)
+  endif
+  return s:c.cabalFile
+endf
+
+"|func intended to be used with ScanAndCache
+"|     by now reads a cabal file and returns a line representation
+"|     lines are joined. That does mean that every line should contain one
+"|     option
+"|      way) Thus  option : abc, \n def will become option abc, def
+"|     
+"|      Can't return a dictionary because a keys may occur more than once (eg hs-source-dirs)
+function! vim_addon_haskell#CabalFileRead(lines)
+  let lines = []
+  let line_to_add = ''
+  if len(a:lines) > 0
+    for line in a:lines
+      if line  !~ ':'
+	let line_to_add .= ' '.line
+      else
+	call add(lines, line_to_add)
+	let line_to_add = line
+      endif
+    endfor
+    call add(lines, line_to_add)
+  endif
+  return lines
+endfunction
+
+function! vim_addon_haskell#CabalFileGetExecutableNames(file)
+  let result = config#ScanIfNewer(a:file, 1, function('vim_addon_haskell#CabalFileRead'))
+  let regex = '\cexecutable:\?\s*\zs[^\t \n\r]\+\ze'
+  return tovl#regex#regex#MatchAll(join(result, " "), regex)
+endfunction
+
 " vim:fdm=marker
