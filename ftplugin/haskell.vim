@@ -10,3 +10,6 @@ if !exists('did_import_mapping') && !exists('g:codefellow_no_import_mapping')
 
   " noremap \i :call<space>Haskell#FindImportByTags()<cr>
 endif
+
+noremap <buffer> \ai :HaskellAddMissingImportsFromQF<cr>
+noremap <buffer> \at :HaskellAddTypeSigsFromQF<cr>

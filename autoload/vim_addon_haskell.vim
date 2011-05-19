@@ -167,6 +167,7 @@ fun! vim_addon_haskell#IndentStuffTheWayPastornWant(i_c) range
   endfor
 endfun
 
+" QF helpers {{{1
 fun! vim_addon_haskell#AddTypeSignaturesFromQF()
   let list = getqflist()
   let l = 0
@@ -204,7 +205,42 @@ fun! vim_addon_haskell#AddTypeSignaturesFromQF()
   for l in names | echo l | endfor
 endf 
 
+fun! vim_addon_haskell#AddMissingImportsFromQF()
+  let list = getqflist()
+  let l = 0
+  let sigs = []
+  let missing = {}
+  let reg_missing = 'Not in scope: `\zs[^'']\+\ze'''
+  while l < len(list)
+    if list[l].text =~ reg_missing
+      let missing[matchstr(list[l].text, reg_missing)]=1
+    endif
+    let l += 1
+  endwhile
+  for k in keys(missing)
+    let tags = taglist('^'.k)
+    let f = eval(tlib#input#List('s'
+          \ , 'import from which module? :'
+          \ , map(tags,'string([vim_addon_haskell#ModuleNameFromFile(v:val.filename)])'))
+          \ )
+    call vim_addon_haskell#AddImport(f[0])
+  endfor
+endf
+
+" }}}
+
 " helper functions {{{1
+fun! vim_addon_haskell#AddImport(module_name)
+  normal gg
+  let nr = search('^import\>','n')
+  call append(nr-1, 'import '.a:module_name)
+endf
+
+fun! vim_addon_haskell#ModuleNameFromFile(file)
+  let r = '^module\s\+\zs\S\+\ze'
+  return matchstr(filter(readfile(a:file), 'v:val =~ '.string(r))[0], r)
+endf
+
 fun! vim_addon_haskell#DistDirs()
   return map(split(glob("*/setup-config"),"\n"), '"./".fnamemodify(v:val, ":h")')
 endf
