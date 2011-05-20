@@ -233,7 +233,8 @@ endf
 fun! vim_addon_haskell#AddImport(module_name)
   normal gg
   let nr = search('^import\>','n')
-  call append(nr-1, 'import '.a:module_name)
+  " TODO should handle existing imports etc
+  call append(nr-1, input('import line :', 'import '.a:module_name))
 endf
 
 fun! vim_addon_haskell#ModuleNameFromFile(file)
