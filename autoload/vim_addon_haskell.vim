@@ -33,7 +33,22 @@ fun! vim_addon_haskell#RunCabalBuild()
   " errorformat taken from http://www.vim.org/scripts/script.php?script_id=477
   let args = ["./Setup","build","--builddir", vim_addon_haskell#DistDir() ]
   let args = actions#ConfirmArgs(args, 'command :')
-  return "call bg#RunQF(".string(args).", 'c', ".string(s:ef).")"
+  let onFinish = funcref#Function('vim_addon_haskell#TryReconfigure', {'args': [args] })
+  return "call bg#RunQF(".string(args).", 'c', ".string(s:ef).", ".string(onFinish).")"
+endf
+
+fun! vim_addon_haskell#TryReconfigure(buildCommand, status)
+  let regex = 'Setup: \S* has been changed, please re-configure'
+  for l in getqflist()
+    if l.text =~ regex
+      let reconfigure =1
+    endif
+  endfor
+  if exists('reconfigure')
+    echom 'reconfiguring for you'
+    let rerun = funcref#Function('bg#RunQF', {'args': [ a:buildCommand, 'c', s:ef] })
+    call bg#RunQF(['./Setup', "configure", "--builddir", vim_addon_haskell#DistDir()], 'c','dummy', rerun)
+  endif
 endf
 
 fun! vim_addon_haskell#RunCabalBuildResult()
@@ -210,7 +225,7 @@ fun! vim_addon_haskell#AddMissingImportsFromQF()
   let l = 0
   let sigs = []
   let missing = {}
-  let reg_missing = 'Not in scope: `\zs[^'']\+\ze'''
+  let reg_missing = 'Not in scope: \%(type constructor or class \|data constructor \)\?`\zs[^'']\+\ze'''
   while l < len(list)
     if list[l].text =~ reg_missing
       let missing[matchstr(list[l].text, reg_missing)]=1
@@ -220,26 +235,30 @@ fun! vim_addon_haskell#AddMissingImportsFromQF()
   for k in keys(missing)
     let tags = taglist('^'.k)
     let f = eval(tlib#input#List('s'
-          \ , 'import from which module? :'
+          \ , 'import '.k.' from which module? :'
           \ , map(tags,'string([vim_addon_haskell#ModuleNameFromFile(v:val.filename)])'))
           \ )
-    call vim_addon_haskell#AddImport(f[0])
+    call vim_addon_haskell#AddImport(f[0], k)
   endfor
 endf
 
 " }}}
 
 " helper functions {{{1
-fun! vim_addon_haskell#AddImport(module_name)
+fun! vim_addon_haskell#AddImport(module_name, thing)
   normal gg
   let nr = search('^import\>','n')
+  if nr == 0
+    let nr = 2
+  endif
   " TODO should handle existing imports etc
-  call append(nr-1, input('import line :', 'import '.a:module_name))
+  call append(nr-1, input('import line :', 'import '.a:module_name.' ('.a:thing.')'))
 endf
 
 fun! vim_addon_haskell#ModuleNameFromFile(file)
   let r = '^module\s\+\zs\S\+\ze'
-  return matchstr(filter(readfile(a:file), 'v:val =~ '.string(r))[0], r)
+  let lines = filter(readfile(a:file), 'v:val =~ '.string(r))
+  return empty(lines) ? "" : matchstr(lines[0], r)
 endf
 
 fun! vim_addon_haskell#DistDirs()
