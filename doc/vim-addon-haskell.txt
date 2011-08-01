@@ -46,3 +46,9 @@ TODO
 - ...
 - setup mapping automatically if a .cabal file is present?
   (my tovl library does this)
+
+
+
+RELATED WORK
+=============
+http://projects.haskell.org/haskellmode-vim/

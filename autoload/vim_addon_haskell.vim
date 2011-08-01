@@ -232,13 +232,23 @@ fun! vim_addon_haskell#AddMissingImportsFromQF()
     endif
     let l += 1
   endwhile
+
+  let hardcoded = {
+        \ 'MVar': 'Control.Concurrent.Mvar'
+        \ }
+
   for k in keys(missing)
-    let tags = taglist('^'.k)
-    let f = eval(tlib#input#List('s'
-          \ , 'import '.k.' from which module? :'
-          \ , map(tags,'string([vim_addon_haskell#ModuleNameFromFile(v:val.filename)])'))
-          \ )
-    call vim_addon_haskell#AddImport(f[0], k)
+    if has_key(hardcoded, k)
+      let module_name = hardcoded[k]
+    else
+      let tags = taglist('^'.k)
+      let f = eval(tlib#input#List('s'
+            \ , 'import '.k.' from which module? :'
+            \ , map(tags,'string([vim_addon_haskell#ModuleNameFromFile(v:val.filename)])'))
+            \ )
+      let module_name = f[0]
+    endif
+    call vim_addon_haskell#AddImport(module_name, k)
   endfor
 endf
 
