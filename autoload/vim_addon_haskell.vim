@@ -38,7 +38,7 @@ fun! vim_addon_haskell#RunCabalBuild()
 endf
 
 fun! vim_addon_haskell#TryReconfigure(buildCommand, status)
-  let regex = 'Setup: \S* has been changed, please re-configure'
+  let regex = "Setup: \\S* has been changed, please re-configure\\|Run the 'configure' command first\\."
   for l in getqflist()
     if l.text =~ regex
       let reconfigure =1
@@ -278,8 +278,10 @@ endf
 fun! vim_addon_haskell#DistDir()
   " Ask for dist directory
   if !exists('s:c.cabalDistDir')
+    let dirs = vim_addon_haskell#DistDirs()
+    if dirs == [] | let dirs = ["dist"] | endif
     let s:c.cabalDistDir = tovl#ui#choice#LetUserSelectIfThereIsAChoice("Which cabal setup to use ?"
-          \ , vim_addon_haskell#DistDirs())
+          \ , dirs)
   endif
   return s:c.cabalDistDir
 endf
