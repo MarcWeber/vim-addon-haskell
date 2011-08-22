@@ -9,7 +9,7 @@
     "tlib": {},
     "vim-addon-views": {},
     "vim-addon-actions": {},
-    "vim-addon-background-cmd": {},
+    "vim-addon-background-cmd": {}
   },
   "description" : "Vim Haskell Tools"
 }
