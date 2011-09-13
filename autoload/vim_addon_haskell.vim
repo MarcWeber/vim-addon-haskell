@@ -1,4 +1,4 @@
-" setup cabal / ghc compilation {{{1
+" setup cabal / ghc compilation {{{1"{{{
 "
 " TODO: remove references to tovl#
 
@@ -31,7 +31,7 @@ endf
 " Cabal {{{2
 fun! vim_addon_haskell#RunCabalBuild()
   " errorformat taken from http://www.vim.org/scripts/script.php?script_id=477
-  let args = ["./Setup","build","--builddir", vim_addon_haskell#DistDir() ]
+  let args = ["cabal","build","--builddir", vim_addon_haskell#DistDir() ]
   let args = actions#ConfirmArgs(args, 'command :')
   let onFinish = funcref#Function('vim_addon_haskell#TryReconfigure', {'args': [args] })
   return "call bg#RunQF(".string(args).", 'c', ".string(s:ef).", ".string(onFinish).")"
@@ -47,7 +47,7 @@ fun! vim_addon_haskell#TryReconfigure(buildCommand, status)
   if exists('reconfigure')
     echom 'reconfiguring for you'
     let rerun = funcref#Function('bg#RunQF', {'args': [ a:buildCommand, 'c', s:ef] })
-    call bg#RunQF(['./Setup', "configure", "--builddir", vim_addon_haskell#DistDir()], 'c','dummy', rerun)
+    call bg#RunQF(['cabal', "configure", "--builddir", vim_addon_haskell#DistDir()], 'c','dummy', rerun)
   endif
 endf
 
@@ -69,25 +69,25 @@ endf
 
 " list is probably incomplete
 let s:cabalSettings = 
-  \[ 'version: '
-  \, 'license: '
-  \, 'author: '
-  \, 'homepage: '
-  \, 'category: '
-  \, 'build-depends: '
-  \, 'synopsis: '
-  \, 'exposed-modules: '
-  \, 'other-modules: '
-  \, 'hs-source-dirs: '
-  \, 'src: '
-  \, 'extra-lib-dirs: .: '
-  \, 'extra-libraries: '
-  \, 'include-dirs: '
-  \, 'ghc-options: '
-  \, 'extensions: '
-  \, 'cpp-options: '
-  \, 'bulidable: '
-  \, 'build-type : '
+  \[ 'version:'
+  \, 'license:'
+  \, 'author:'
+  \, 'homepage:'
+  \, 'category:'
+  \, 'build-depends:'
+  \, 'synopsis:'
+  \, 'exposed-modules:'
+  \, 'other-modules:'
+  \, 'hs-source-dirs:'
+  \, 'src:'
+  \, 'extra-lib-dirs:'
+  \, 'extra-libraries:'
+  \, 'include-dirs:'
+  \, 'ghc-options:'
+  \, 'extensions:'
+  \, 'cpp-options:'
+  \, 'bulidable:'
+  \, 'build-type:'
   \, 'default-language: Haskell2010'
   \]
 
@@ -114,7 +114,7 @@ fun! vim_addon_haskell#CompleteCabalSetting(findstart, base)
   endif
 endfun
 
-
+"}}}
 " folding {{{1
 fun! vim_addon_haskell#Folding(...)
   let lnum = a:0 > 0 ? a:1 : v:lnum
@@ -280,8 +280,11 @@ fun! vim_addon_haskell#DistDir()
   if !exists('s:c.cabalDistDir')
     let dirs = vim_addon_haskell#DistDirs()
     if dirs == [] | let dirs = ["dist"] | endif
-    let s:c.cabalDistDir = tovl#ui#choice#LetUserSelectIfThereIsAChoice("Which cabal setup to use ?"
-          \ , dirs)
+    if len(dirs) > 1
+        let s:c.cabalDistDir = tlib#input#list("s", "Which cabal setup to use ?", dirs)
+    else
+        let s:c.cabalDistDir = dirs[0]
+    endif
   endif
   return s:c.cabalDistDir
 endf
@@ -290,7 +293,11 @@ fun! vim_addon_haskell#CabalFile()
   if !exists('s:c.cabalFile')
     let cabalFiles = split(glob('*.cabal'),"\n")
     " should never happpen ..
-    let s:c.cabalFile = tovl#ui#choice#LetUserSelectIfThereIsAChoice("Which cabal file to use?", cabalFiles)
+    if len(cabalFiles) > 1
+        let s:c.cabalFile = tlib#input#list("s", "Which cabal file to use?", cabalFiles)
+    else
+        let s:c.cabalFile = cabalFiles[0]
+    endif
   endif
   return s:c.cabalFile
 endf
