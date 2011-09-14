@@ -4,6 +4,9 @@
 
 " vam#DefineAndBind('s:c','g:vim_addon_haskell','{}')
 if !exists('g:vim_addon_haskell') | let g:vim_addon_haskell = {} | endif | let s:c = g:vim_addon_haskell
+" cabal support is not complete yet: probably there is no need to compile ./Setup .. (TODO)
+let s:c.cabal_command = get(s:c, 'cabal_command', executable('cabal') ? ["cabal"] : ["./Setup"] )
+
 
 let s:ef =
         \ '%f:%l:%c:%m'
@@ -31,7 +34,7 @@ endf
 " Cabal {{{2
 fun! vim_addon_haskell#RunCabalBuild()
   " errorformat taken from http://www.vim.org/scripts/script.php?script_id=477
-  let args = ["./Setup","build","--builddir", vim_addon_haskell#DistDir() ]
+  let args = s:c.cabal_command + ["build","--builddir", vim_addon_haskell#DistDir() ]
   let args = actions#ConfirmArgs(args, 'command :')
   let onFinish = funcref#Function('vim_addon_haskell#TryReconfigure', {'args': [args] })
   return "call bg#RunQF(".string(args).", 'c', ".string(s:ef).", ".string(onFinish).")"
@@ -47,7 +50,7 @@ fun! vim_addon_haskell#TryReconfigure(buildCommand, status)
   if exists('reconfigure')
     echom 'reconfiguring for you'
     let rerun = funcref#Function('bg#RunQF', {'args': [ a:buildCommand, 'c', s:ef] })
-    call bg#RunQF(['./Setup', "configure", "--builddir", vim_addon_haskell#DistDir()], 'c','dummy', rerun)
+    call bg#RunQF(s:c.cabal_command +["configure", "--builddir", vim_addon_haskell#DistDir()], 'c','dummy', rerun)
   endif
 endf
 
