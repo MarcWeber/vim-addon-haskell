@@ -280,8 +280,7 @@ fun! vim_addon_haskell#DistDir()
   if !exists('s:c.cabalDistDir')
     let dirs = vim_addon_haskell#DistDirs()
     if dirs == [] | let dirs = ["dist"] | endif
-    let s:c.cabalDistDir = tovl#ui#choice#LetUserSelectIfThereIsAChoice("Which cabal setup to use ?"
-          \ , dirs)
+    let s:c.cabalDistDir = tlib#input#list("s", "Which cabal setup to use ?", dirs)
   endif
   return s:c.cabalDistDir
 endf
@@ -290,7 +289,7 @@ fun! vim_addon_haskell#CabalFile()
   if !exists('s:c.cabalFile')
     let cabalFiles = split(glob('*.cabal'),"\n")
     " should never happpen ..
-    let s:c.cabalFile = tovl#ui#choice#LetUserSelectIfThereIsAChoice("Which cabal file to use?", cabalFiles)
+    let s:c.cabalFile = tlib#input#list("s", "Which cabal file to use?", cabalFiles)
   endif
   return s:c.cabalFile
 endf
