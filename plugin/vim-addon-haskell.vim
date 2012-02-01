@@ -14,3 +14,6 @@ augroup end
 command! HaskellAddTypeSigsFromQF call vim_addon_haskell#AddTypeSignaturesFromQF()
 command! HaskellAddCompilerDirectivesFromQF call vim_addon_haskell#AddCompilerDirectivesFromQF()
 command! HaskellAddMissingImportsFromQF call vim_addon_haskell#AddMissingImportsFromQF()
+if executable('hack-nix')
+  command! HackNixReloadEnv  call vim_addon_haskell#HackNixReloadEnv()
+endif

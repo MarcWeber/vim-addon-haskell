@@ -322,9 +322,24 @@ function! vim_addon_haskell#CabalFileRead(lines)
 endfunction
 
 function! vim_addon_haskell#CabalFileGetExecutableNames(file)
-  let result = config#ScanIfNewer(a:file, 1, function('vim_addon_haskell#CabalFileRead'))
+  let result = config#ScanIfNewer(a:file, {'use_cache': 1, 'scan_func':function('vim_addon_haskell#CabalFileRead')})
   let regex = '\cexecutable:\?\s*\zs[^\t \n\r]\+\ze'
   return tovl#regex#regex#MatchAll(join(result, " "), regex)
 endfunction
+
+fun! vim_addon_haskell#HackNixReloadEnv()
+  let env = matchstr(vim_addon_haskell#DistDir(),'dist\zs.*').'-env'
+  if env == "-env"
+    let  env = 'default-env'
+  endif
+  if filereadable(env)
+    call env_reload#ReloadEnv(system('sh -c ". ./'.env.' 2> /dev/null; export"'))
+    if has_key(s:c,'env_reloaded_hook_fun')
+      call call(s:c.env_reloaded_hook_fun, [])
+    endif
+  else
+    throw env.' file not found'
+  endif
+endf
 
 " vim:fdm=marker

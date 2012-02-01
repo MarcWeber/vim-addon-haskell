@@ -25,6 +25,8 @@ Features:
 
   You can use the "run ghc compilation result" action to run what you compiled by ghc
 
+Also have a look at mappings in ftplugin/lhaskell.vim
+
 
 Recommended:
 ================
