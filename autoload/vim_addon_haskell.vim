@@ -133,6 +133,7 @@ endf
 let s:ef =
         \ '%f:%l:%c:%m'
         \ .',%E%f:%l:%c:'
+        \ .',%E%f:%l:%m'
 
 fun! vim_addon_haskell#RunGHCRHS()
 
@@ -186,6 +187,25 @@ fun! vim_addon_haskell#IndentStuffTheWayPastornWant(i_c) range
 endfun
 
 " QF helpers {{{1
+fun! vim_addon_haskell#AddCompilerDirectivesFromQF()
+  let list = getqflist()
+  let l = 0
+  let sigs = []
+  while l < len(list)
+    " find item of qf list which has a filename
+    if list[l].bufnr != 0
+      let file = list[l].bufnr
+      let l += 1
+      continue
+    endif
+    let r = matchlist(list[l].text, 'Use -X\([^ ]\+\)')
+    if !empty(r)
+      call append(0, '{-# LANGUAGE ' . r[1] . ' #-}')
+    endif
+    let l += 1
+  endwhile
+endf
+
 fun! vim_addon_haskell#AddTypeSignaturesFromQF()
   let list = getqflist()
   let l = 0
@@ -198,7 +218,10 @@ fun! vim_addon_haskell#AddTypeSignaturesFromQF()
     let l += 1
     if l == len(list) | break | endif
 
-    if list[l].text =~ 'Warning: Definition but no type signature for'
+    let r = matchlist(list[l].text, 'Warning: Top-level binding with no type signature: \(.*\)')
+    if !empty(r)
+      call add(sigs, [file, r[1]])
+    elseif list[l].text =~ 'Warning: Definition but no type signature for'
       let l += 1
       let type = []
       while list[l].bufnr == 0

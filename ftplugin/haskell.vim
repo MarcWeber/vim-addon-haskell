@@ -13,3 +13,4 @@ endif
 
 noremap <buffer> \ai :HaskellAddMissingImportsFromQF<cr>
 noremap <buffer> \at :HaskellAddTypeSigsFromQF<cr>
+noremap <buffer> \ac :HaskellAddCompilerDirectivesFromQF<cr>
