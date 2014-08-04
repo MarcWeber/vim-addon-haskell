@@ -1,0 +1,20 @@
+See doc/vim-addon-haskell.txt
+
+nixpkgs-haskell-overlay sample ~/.vimrc configuration:
+
+  fun! AddTagsFromEnv()
+    let tags = split(&tags,',')
+    for i in split(expand('$buildInputs'),'\s\+')
+      call extend(tags, split(glob(i.'/src/*/*_tags'),"\n"))
+    endfor
+    call extend(tags, split($TAG_FILES,":"))
+    call filter(tags, 'filereadable(v:val)')
+    for t in tags
+      if &tags !~ substitute(t, '/','\\/','g')
+        exec "set tags+=".t
+      endif
+    endfor
+  endf
+  let g:vim_addon_haskell = {}
+  let g:vim_addon_haskell.env_reloaded_hook_fun = 'AddTagsFromEnv'
+  call AddTagsFromEnv()
